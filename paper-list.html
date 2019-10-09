@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Paper Exploration</title>
+    <script type="text/javascript" src="d3v4/d3.js"></script>
+    <script type="text/javascript" src="ABNode.js"></script>
+    <script type="text/javascript" src="FileSaver.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div id="chartId"></div>
+    <svg width = "1440" height="900"></svg>
+    <div class="cd-panel cd-panel--from-right js-cd-panel-main">
+        <header class="cd-panel__header">
+            <h1>Title Goes Here</h1>
+            <a href="#0" class="cd-panel__close js-cd-close">Close</a>
+        </header>
+
+        <div class="cd-panel__container">
+            <div class="cd-panel__content">
+<!--                your side panel content here -->
+            </div>
+        </div>
+    </div>
+<script>
+    var menu = [
+        {
+            title: 'Details',
+            action: function(elm, d, i) {
+                console.log('Details clicked!');
+                d3.select("cd-panel")
+                    .attr("class", "cd-panel--is-visible");
+            }
+        }
+    ]
+    let paperList = {"nodes":[], "links":[]};
+    let newNode;
+
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0)
+        .style("width", 200)
+        .style("height", 80);
+
+    d3.json("paper.json", function(error, data) {
+        if (error) throw error;
+        console.log(data);
+        for (pure of data) {
+            pure.isExpanded = false;
+        }
+        data[0].isExpanded = true;
+        paperList.nodes.push({
+            "title": data[0]["title"],
+            "paperId": data[0]["paperId"]
+        });
+        var i = 0;
+        var sourceID, targetID;
+        for (i = 0; i < 10; i++){
+            newNode = new ABNode(data[0]["citations"][i].title, data[0]["citations"][i].paperId);
+            paperList.nodes.push({
+                "title": data[0]["citations"][i]["title"],
+                "paperId": data[0]["citations"][i]["paperId"]
+            });
+            console.log(paperList.nodes[0].paperId);
+            sourceID = paperList.nodes[0].paperId;
+            targetID = newNode.paperId;
+            paperList.links.push({"source": sourceID, "target": targetID});
+        }
+
+        console.log(paperList);
+
+
+        rect = d3.selectAll("rect");
+        var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+        var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+        var link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(paperList.links)
+            .enter()
+            .append("line")
+            .style("stroke", "#aaa")
+
+        var node = svg.selectAll(".node")
+            .data(paperList.nodes)
+            .enter().append("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+
+        var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink()
+                .id(function(d) {return d.paperId;}).distance(200))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width/2, height/2))
+
+        node.append("circle")
+            .attr("r", 15)
+            .attr("fill", "#bb2280")
+            .on("click", function(d){
+                let paper;
+                for (paper of data) {
+                    console.log(paper.isExpanded);
+                    if ((paper["paperId"] === d.paperId) && (paper["isExpanded"] == false)){
+                        console.log(paper["isExpanded"]);
+                        console.log(d.title);
+                        let subpaper;
+                        for (subpaper of paper["citations"]) {
+                            console.log(subpaper.title);
+                            paperList.nodes.push({
+                                "title": subpaper.title, "paperId": subpaper.paperId
+                            });
+                            paperList.links.push({"source": paper.paperId, "target": subpaper.paperId});
+                        }
+                        paper.isExpanded = true;
+                        restart();
+                    }
+                }
+            })
+            .on('contextmenu', d3.contextmenu(menu));
+
+        node.append("text")
+            .attr("dx", 6)
+            .text(function(d) {return d.title;})
+            .attr("font-family", "Helvetica")
+            .attr("font-size", "0.75em");
+
+
+
+        simulation
+            .nodes(paperList.nodes)
+            .on("tick", ticked);
+
+        simulation.force("link")
+            .links(paperList.links);
+
+
+
+
+        function ticked(){
+            link
+                .attr("x1", function(d) {return d.source.x;})
+                .attr("y1", function(d) {return d.source.y;})
+                .attr("x2", function(d) {return d.target.x;})
+                .attr("y2", function(d) {return d.target.y;});
+
+            node.attr("transform", function(d){
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+        }
+
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function restart() {
+
+            // Apply the general update pattern to the nodes.
+            // node = node.data(paperList.nodes, function(d) { return d.paperId;});
+            node = node.data(paperList.nodes);
+            node.exit().remove();
+            var enter = node.enter().append("g")
+                .attr("class", "node")
+                // .merge(node)
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            enter.append("circle")
+                .attr("r", 15)
+                .attr("fill", "#bb2280")
+                .on("click", function(d){
+                    let paper;
+                    for (paper of data) {
+                        if (paper["paperId"] === d.paperId){
+                            console.log(d.title);
+                            let subpaper;
+                            for (subpaper of paper["citations"]) {
+                                console.log(subpaper.title);
+                                paperList.nodes.push({"title": subpaper.title, "paperId": subpaper.paperId});
+                                paperList.links.push({"source": paper.paperId, "target": subpaper.paperId});
+                                restart();
+                            }
+                        }
+                    }
+                });
+
+            // node.remove("text");
+
+            // node = svg.selectAll(".node");
+            enter
+                .append("text")
+                .attr("dx", 6)
+                .text(function(d) {return d.title;})
+                .attr("font-family", "Helvetica")
+                .attr("font-size", "0.75em");
+
+            node = node.merge(enter);
+
+            // node.enter().merge(node);
+
+            // Apply the general update pattern to the links.
+            link = link.data(paperList.links, function(d) { return d.source.paperId + "-" + d.target.paperId; });
+            link.exit().remove();
+            link = link.enter().append("line").merge(link);
+
+            // Update and restart the simulation.
+            simulation.nodes(paperList.nodes);
+            simulation.force("link").links(paperList.links);
+            simulation.alpha(1).restart();
+        }
+    });
+
+
+
+
+</script>
+</body>
+</html>
