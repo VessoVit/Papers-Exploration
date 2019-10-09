@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Paper Exploration</title>
     <script type="text/javascript" src="d3v4/d3.js"></script>
+    <script type="text/javascript" src="d3-v4-contextmenu.js"></script>
     <script type="text/javascript" src="ABNode.js"></script>
     <script type="text/javascript" src="FileSaver.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
@@ -12,128 +13,106 @@
     <div id="chartId"></div>
     <svg width = "1440" height="900"></svg>
     <div class="cd-panel cd-panel--from-right js-cd-panel-main">
-        <header class="cd-panel__header">
+        <div class="cd-panel__header">
             <h1>Title Goes Here</h1>
-            <a href="#0" class="cd-panel__close js-cd-close">Close</a>
-        </header>
+            <a href="#" class="cd-panel__close js-cd-close">Close</a>
+        </div>
 
         <div class="cd-panel__container">
             <div class="cd-panel__content">
 <!--                your side panel content here -->
+                            <h1>Title Goes Here</h1>
+                <button onclick="CloseInfo()">Close</button>
             </div>
         </div>
     </div>
 <script>
-    // ------------- THIS PART IS FOR THE MENU -----------------
-    function contextMenu() {
-        var height,
-            width,
-            margin = 0.1, // fraction of width
-            items = [],
-            rescale = false,
-            style = {
-                'rect': {
-                    'mouseout': {
-                        'fill': 'rgb(244,244,244)',
-                        'stroke': 'white',
-                        'stroke-width': '1px'
-                    },
-                    'mouseover': {
-                        'fill': 'rgb(200,200,200)'
+
+    function CloseInfo() {
+        d3.selectAll(".cd-panel").classed("cd-panel--is-visible", false);
+    }
+
+    var items = [
+        {
+            label: "Show Details about Paper",
+            onClick: function (d) {
+                console.log("The user wants to know about " + d.title);
+                d3.selectAll(".cd-panel")
+                    .classed("cd-panel--is-visible", true);
+                d3.selectAll(".cd-panel__content")
+                    .html("<button onclick=\"CloseInfo()\">Close</button>" +
+                        "Title: " + d.title +"<br />"
+                    + "Abstract: " + d.abstract)
+                ;
+            }
+        },
+        {
+            label: "Some BS features",
+            items: [
+                {
+                    label: "red",
+                    onClick: function () {
+                        this.style.fill = "#ff0000";
                     }
                 },
-                'text': {
-                    'fill': 'steelblue',
-                    'font-size': '13'
+                {
+                    label: "blue",
+                    action: function () {
+                        this.style.fill = "#0000ff";
+                    }
+                },
+                {
+                    label: "index",
+                    action: function (d, i) {
+                        alert(i + 1);
+                    }
                 }
-            };
-
-        function menu(x, y) {
-            d3.select('.context-menu').remove();
-            scaleItems();
-
-            // Draw the menu
-            d3.select('svg')
-                .append('g').attr('class', 'context-menu')
-                .selectAll('tmp')
-                .data(items).enter()
-                .append('g').attr('class', 'menu-entry')
-                .style({'cursor': 'pointer'})
-                .on('mouseover', function(){
-                    d3.select(this).select('rect').style(style.rect.mouseover) })
-                .on('mouseout', function(){
-                    d3.select(this).select('rect').style(style.rect.mouseout) });
-
-            d3.selectAll('.menu-entry')
-                .append('rect')
-                .attr('x', x)
-                .attr('y', function(d, i){ return y + (i * height); })
-                .attr('width', width)
-                .attr('height', height)
-                .style(style.rect.mouseout);
-
-            d3.selectAll('.menu-entry')
-                .append('text')
-                .text(function(d){ return d; })
-                .attr('x', x)
-                .attr('y', function(d, i){ return y + (i * height); })
-                .attr('dy', height - margin / 2)
-                .attr('dx', margin)
-                .style(style.text);
-
-            // Other interactions
-            d3.select('body')
-                .on('click', function() {
-                    d3.select('.context-menu').remove();
-                });
-
-        }
-
-        menu.items = function(e) {
-            if (!arguments.length) return items;
-            for (i in arguments) items.push(arguments[i]);
-            rescale = true;
-            return menu;
-        }
-
-        // Automatically set width, height, and margin;
-        function scaleItems() {
-            if (rescale) {
-                d3.select('svg').selectAll('tmp')
-                    .data(items).enter()
-                    .append('text')
-                    .text(function(d){ return d; })
-                    .style(style.text)
-                    .attr('x', -1000)
-                    .attr('y', -1000)
-                    .attr('class', 'tmp');
-                var z = d3.selectAll('.tmp')[0]
-                    .map(function(x){ return x.getBBox(); });
-                width = d3.max(z.map(function(x){ return x.width; }));
-                margin = margin * width;
-                width =  width + 2 * margin;
-                height = d3.max(z.map(function(x){ return x.height + margin / 2; }));
-
-                // cleanup
-                d3.selectAll('.tmp').remove();
-                rescale = false;
-            }
-        }
-
-        return menu;
-    }
-    // ----------------- END THE PART FOR THE MENU ---------------------------
-
-    var menu = [
+            ]
+        },
         {
-            title: 'Details',
-            action: function(elm, d, i) {
-                console.log('Details clicked!');
-                d3.select("cd-panel")
-                    .attr("class", "cd-panel--is-visible");
-            }
+            label: "background",
+            items: [
+                {
+                    label: "red",
+                    onClick: function () {
+                        svg.node().style.background = "#ff0000";
+                    }
+                },
+                {
+                    label: "blue",
+                    action: function () {
+                        svg.node().style.background = "#0000ff";
+                    }
+                },
+                {
+                    label: "pink",
+                    action: function() {
+                        alert('pink is clicked!');
+                    },
+                    items: function() {
+                        return [
+                            {
+                                label: "deep pink",
+                                action: function () {
+                                    svg.node().style.background = "#ff1493";
+                                }
+                            },
+                            {
+                                label() {
+                                    return "shocking pink";
+                                },
+                                action() {
+                                    svg.node().style.background = "#fc0fc0";
+                                }
+                            }
+                        ];
+                    }
+                }
+            ]
         }
-    ]
+    ];
+
+
     let paperList = {"nodes":[], "links":[]};
     let newNode;
 
@@ -152,7 +131,17 @@
         data[0].isExpanded = true;
         paperList.nodes.push({
             "title": data[0]["title"],
-            "paperId": data[0]["paperId"]
+            "paperId": data[0]["paperId"],
+            "abstract": data[0]["abstract"],
+            "arxivId": data[0]["arxivId"],
+            "authors": data[0]["authors"],
+            "citationVelocity": data[0]["citationVelocity"],
+            "doi": data[0]["doi"],
+            "influentialCitationCount": data[0]["influentialCitationCount"],
+            "topics": data[0]["topics"],
+            "url": data[0]["url"],
+            "venue": data[0]["Nature"],
+            "year": data[0]["year"]
         });
         var i = 0;
         var sourceID, targetID;
@@ -160,7 +149,8 @@
             newNode = new ABNode(data[0]["citations"][i].title, data[0]["citations"][i].paperId);
             paperList.nodes.push({
                 "title": data[0]["citations"][i]["title"],
-                "paperId": data[0]["citations"][i]["paperId"]
+                "paperId": data[0]["citations"][i]["paperId"],
+                "abstract": data[0]["citations"][i]["abstract"]
             });
             console.log(paperList.nodes[0].paperId);
             sourceID = paperList.nodes[0].paperId;
@@ -203,37 +193,55 @@
             .force("center", d3.forceCenter(width/2, height/2))
 
         node.append("circle")
-            .attr("r", 15)
-            .attr("fill", "#bb2280")
+            .attr("r", 20)
+            // .attr("fill", "#bb2280")
             .on("click", function(d){
-                let paper;
-                for (paper of data) {
-                    console.log(paper.isExpanded);
-                    if ((paper["paperId"] === d.paperId) && (paper["isExpanded"] == false)){
-                        console.log(paper["isExpanded"]);
-                        console.log(d.title);
-                        let subpaper;
-                        for (subpaper of paper["citations"]) {
-                            console.log(subpaper.title);
-                            paperList.nodes.push({
-                                "title": subpaper.title, "paperId": subpaper.paperId
-                            });
-                            paperList.links.push({"source": paper.paperId, "target": subpaper.paperId});
+                if (d3.event.shiftKey) {
+                    d3.select("cd-panel")
+                        .attr("class", "cd-panel--is-visible");
+                }
+                else {
+                    let paper;
+                    for (paper of data) {
+                        console.log(paper.isExpanded);
+                        if ((paper["paperId"] === d.paperId) && (paper["isExpanded"] == false)){
+                            console.log(paper["isExpanded"]);
+                            console.log(d.title);
+                            let subpaper;
+                            for (subpaper of paper["citations"]) {
+                                console.log(subpaper.title);
+                                paperList.nodes.push({
+                                    "title": subpaper.title, "paperId": subpaper.paperId
+                                });
+                                paperList.links.push({"source": paper.paperId, "target": subpaper.paperId});
+                            }
+                            paper.isExpanded = true;
+                            restart();
                         }
-                        paper.isExpanded = true;
-                        restart();
                     }
                 }
-            });
-            // .on('contextmenu', d3.contextmenu(menu));
+            })
+            .on("mouseover", handleMouseOver)
+            .on("mouseleave", handleMouseOut)
+            .on('contextmenu', d3.contextmenu(items));
+
+        function handleMouseOver(d, i) {
+            console.log("mouse has entered");
+            d3.select(this).attr("fill", "blue")
+                .style("stroke", "orange")
+                .style("stroke-width", "4px");
+        }
+
+        function handleMouseOut(d, i) {
+            d3.select(this).attr("fill", "black")
+                .style("stroke", "none");
+        }
 
         node.append("text")
             .attr("dx", 6)
             .text(function(d) {return d.title;})
             .attr("font-family", "Helvetica")
             .attr("font-size", "0.75em");
-
-
 
         simulation
             .nodes(paperList.nodes)
@@ -289,8 +297,7 @@
                     .on("end", dragended));
 
             enter.append("circle")
-                .attr("r", 15)
-                .attr("fill", "#bb2280")
+                .attr("r", 20)
                 .on("click", function(d){
                     let paper;
                     for (paper of data) {
@@ -305,7 +312,9 @@
                             }
                         }
                     }
-                });
+                })
+                .on("mouseover", handleMouseOver)
+                .on("mouseleave", handleMouseOut);
 
             // node.remove("text");
 
