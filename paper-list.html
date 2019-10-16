@@ -10,22 +10,24 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <div id="chartId"></div>
-    <svg width = "1440" height="900"></svg>
-    <div class="cd-panel cd-panel--from-right js-cd-panel-main">
-        <div class="cd-panel__header">
-            <h1>Title Goes Here</h1>
-            <a href="#" class="cd-panel__close js-cd-close">Close</a>
-        </div>
+<div id="chartId"></div>
+<svg width="1280" height="720"></svg>
+<div class="cd-panel cd-panel--from-right js-cd-panel-main">
+    <div class="cd-panel__header">
+        <h1>Title Goes Here</h1>
+        <a href="#" class="cd-panel__close js-cd-close">Close</a>
+    </div>
 
-        <div class="cd-panel__container">
-            <div class="cd-panel__content">
-<!--                your side panel content here -->
-                            <h1>Title Goes Here</h1>
-                <button onclick="CloseInfo()">Close</button>
+    <div class="cd-panel__container">
+        <div class="cd-panel__content">
+            <div class="cd-panel__content--text">
+
             </div>
+            <button onclick="CloseInfo()">Close</button>
+            <!--                your side panel content here -->
         </div>
     </div>
+</div>
 <script>
 
     function CloseInfo() {
@@ -39,10 +41,32 @@
                 console.log("The user wants to know about " + d.title);
                 d3.selectAll(".cd-panel")
                     .classed("cd-panel--is-visible", true);
-                d3.selectAll(".cd-panel__content")
-                    .html("<button onclick=\"CloseInfo()\">Close</button>" +
-                        "Title: " + d.title +"<br />"
-                    + "Abstract: " + d.abstract)
+                d3.selectAll(".cd-panel__content--text")
+                    .html("<h1 class = paper-detail-title>" + d.title + "</h1>"
+                        + "<ul class=subhead data-selenium-selector=paper-meta-subhead>" +
+                        "<li>" +
+                        "<span class=author-list>" +
+                        "<span data-heap-id data-heap-author-id>" +
+                        "<span class=author-list__author-name>" +
+                        "<span>Yann LeCun</span></span></span>" +
+                        "<span data-heap-id data-heap-author-id>, " +
+                        "<span class=author-list__author-name>" +
+                        "<span>Yoshua Bengio</span></span></span>" +
+                        "<span data-heap-id data-heap-author-id=1695689>, " +
+                        "<a class='author-list__link author-list__author-name' href=/author/Geoffrey-E.-Hinton/1695689>" +
+                        "<span class=''>" +
+                        "<span>Geoffrey E. Hinton</span></span></a></span></span></li>" +
+                        "<li>Published in <span data-selenium-selector='venue-metadata'>" +
+                        "<span class=''>" +
+                        "<span>Nature</span></span></span> " +
+                        "<span data-selenium-selector='paper-year'>" +
+                        "<span class=''>" +
+                        "<span>2015</span></span></span></li>" +
+                        "<li data-selenium-selector='paper-doi'>" +
+                        "<section class='doi'>" +
+                        "<span class='doi__label'>DOI:</span>" +
+                        "<a class='doi__link' href='https://doi.org/10.1038/nature14539'>10.1038/nature14539</a></section></li></ul>"
+                        + "Abstract: " + "<div class='cd-panel__content--abstract'>" + d.abstract + "</div>")
                 ;
             }
         },
@@ -86,10 +110,10 @@
                 },
                 {
                     label: "pink",
-                    action: function() {
+                    action: function () {
                         alert('pink is clicked!');
                     },
-                    items: function() {
+                    items: function () {
                         return [
                             {
                                 label: "deep pink",
@@ -113,7 +137,7 @@
     ];
 
 
-    let paperList = {"nodes":[], "links":[]};
+    let paperList = {"nodes": [], "links": []};
     let newNode;
 
     var div = d3.select("body").append("div")
@@ -122,7 +146,7 @@
         .style("width", 200)
         .style("height", 80);
 
-    d3.json("paper.json", function(error, data) {
+    d3.json("paper.json", function (error, data) {
         if (error) throw error;
         console.log(data);
         for (pure of data) {
@@ -145,7 +169,7 @@
         });
         var i = 0;
         var sourceID, targetID;
-        for (i = 0; i < 10; i++){
+        for (i = 0; i < 10; i++) {
             newNode = new ABNode(data[0]["citations"][i].title, data[0]["citations"][i].paperId);
             paperList.nodes.push({
                 "title": data[0]["citations"][i]["title"],
@@ -163,8 +187,8 @@
 
         rect = d3.selectAll("rect");
         var svg = d3.select("svg"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height");
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
 
         var color = d3.scaleOrdinal(d3.schemeCategory20);
 
@@ -188,23 +212,24 @@
 
         var simulation = d3.forceSimulation()
             .force("link", d3.forceLink()
-                .id(function(d) {return d.paperId;}).distance(200))
+                .id(function (d) {
+                    return d.paperId;
+                }).distance(200))
             .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width/2, height/2))
+            .force("center", d3.forceCenter(width / 2, height / 2))
 
         node.append("circle")
             .attr("r", 20)
             // .attr("fill", "#bb2280")
-            .on("click", function(d){
+            .on("click", function (d) {
                 if (d3.event.shiftKey) {
                     d3.select("cd-panel")
                         .attr("class", "cd-panel--is-visible");
-                }
-                else {
+                } else {
                     let paper;
                     for (paper of data) {
                         console.log(paper.isExpanded);
-                        if ((paper["paperId"] === d.paperId) && (paper["isExpanded"] == false)){
+                        if ((paper["paperId"] === d.paperId) && (paper["isExpanded"] == false)) {
                             console.log(paper["isExpanded"]);
                             console.log(d.title);
                             let subpaper;
@@ -239,7 +264,9 @@
 
         node.append("text")
             .attr("dx", 6)
-            .text(function(d) {return d.title;})
+            .text(function (d) {
+                return d.title;
+            })
             .attr("font-family", "Helvetica")
             .attr("font-size", "0.75em");
 
@@ -251,16 +278,22 @@
             .links(paperList.links);
 
 
-
-
-        function ticked(){
+        function ticked() {
             link
-                .attr("x1", function(d) {return d.source.x;})
-                .attr("y1", function(d) {return d.source.y;})
-                .attr("x2", function(d) {return d.target.x;})
-                .attr("y2", function(d) {return d.target.y;});
+                .attr("x1", function (d) {
+                    return d.source.x;
+                })
+                .attr("y1", function (d) {
+                    return d.source.y;
+                })
+                .attr("x2", function (d) {
+                    return d.target.x;
+                })
+                .attr("y2", function (d) {
+                    return d.target.y;
+                });
 
-            node.attr("transform", function(d){
+            node.attr("transform", function (d) {
                 return "translate(" + d.x + "," + d.y + ")";
             });
         }
@@ -298,10 +331,10 @@
 
             enter.append("circle")
                 .attr("r", 20)
-                .on("click", function(d){
+                .on("click", function (d) {
                     let paper;
                     for (paper of data) {
-                        if (paper["paperId"] === d.paperId){
+                        if (paper["paperId"] === d.paperId) {
                             console.log(d.title);
                             let subpaper;
                             for (subpaper of paper["citations"]) {
@@ -322,7 +355,9 @@
             enter
                 .append("text")
                 .attr("dx", 6)
-                .text(function(d) {return d.title;})
+                .text(function (d) {
+                    return d.title;
+                })
                 .attr("font-family", "Helvetica")
                 .attr("font-size", "0.75em");
 
@@ -331,7 +366,9 @@
             // node.enter().merge(node);
 
             // Apply the general update pattern to the links.
-            link = link.data(paperList.links, function(d) { return d.source.paperId + "-" + d.target.paperId; });
+            link = link.data(paperList.links, function (d) {
+                return d.source.paperId + "-" + d.target.paperId;
+            });
             link.exit().remove();
             link = link.enter().append("line").merge(link);
 
@@ -341,8 +378,6 @@
             simulation.alpha(1).restart();
         }
     });
-
-
 
 
 </script>
