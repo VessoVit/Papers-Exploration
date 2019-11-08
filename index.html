@@ -1,72 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8"/>
-	<title></title>
-
-	<script src="d3.js"></script>
-
-
-
-	<script type="text/javascript">
-	// create the svg area
-	var svg = d3.select("#my_dataviz")
-	  .append("svg")
-	    .attr("width", 440)
-	    .attr("height", 440)
-	  .append("g")
-	    .attr("transform", "translate(220,220)")
-
-	// create input data: a square matrix that provides flow between entities
-	var matrix = [
-	  [11975,  5871, 8916, 2868],
-	  [ 1951, 10048, 2060, 6171],
-	  [ 8010, 16145, 8090, 8045],
-	  [ 1013,   990,  940, 6907]
-	];
-
-	// give this matrix to d3.chord(): it will calculates all the info we need to draw arc and ribbon
-	var res = d3.chord()
-	    .padAngle(0.05)     // padding between entities (black arc)
-	    .sortSubgroups(d3.descending)
-	    (matrix)
-
-	// add the groups on the inner part of the circle
-	svg
-	  .datum(res)
-	  .append("g")
-	  .selectAll("g")
-	  .data(function(d) { return d.groups; })
-	  .enter()
-	  .append("g")
-	  .append("path")
-	    .style("fill", "grey")
-	    .style("stroke", "black")
-	    .attr("d", d3.arc()
-	      .innerRadius(200)
-	      .outerRadius(210)
-	    )
-
-	// Add the links between groups
-	svg
-	  .datum(res)
-	  .append("g")
-	  .selectAll("path")
-	  .data(function(d) { return d; })
-	  .enter()
-	  .append("path")
-	    .attr("d", d3.ribbon()
-	      .radius(200)
-	    )
-	    .style("fill", "#69b3a2")
-	    .style("stroke", "black");
-
-	</script>
-
-	<div id="my_dataviz"></div>
-
+    <meta charset="UTF-8">
+    <title>Simple D3 Dev Env</title>
+    <script type="text/javascript" src="d3.js"></script>
 </head>
 <body>
 
+<script>
+    // Circle Data Set
+    var circleData = [
+        { "cx": 20, "cy": 20, "radius": 20, "color": "green"},
+        { "cx": 70, "cy": 70, "radius": 20, "color": "purple"},
+        { "cx": 70, "cy": 120, "radius": 20, "color": "red"}
+    ];
+
+    // Create the SVG Viewport
+    var svgContainer = d3.select("body").append("svg")
+    .attr("width", 200)
+    .attr("height", 200);
+
+    // Add circles to the svgContainer
+    var circles = svgContainer.selectAll("circle")
+    .data(circleData)
+    .enter()
+    .append("circle");
+
+    // Add the circle attributes
+    var circleAttributes = circles
+    .attr("cx", function(d) {return d.cx;})
+    .attr("cy", function(d) {return d.cy;})
+    .attr("r", function(d) {return d.radius;})
+    .style("fill", function(d) {return d.color;});
+
+    var text = svgContainer.selectAll("text")
+        .data(circleData)
+        .enter()
+        .append("text")
+
+    var textLabel = text
+    .attr("x", function(d) {return d.cx;})
+    .attr("y", function(d) {return d.cy;})
+    .text(function(d) {return "(" + d.cx + "," + d.cy + ")";})
+    .attr("font-family", "sans-serif")
+    .attr("font-size", "20px")
+    .attr("fill", "red");
+
+    console.log(textLabel);
+</script>
 </body>
 </html>

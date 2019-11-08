@@ -1,0 +1,158 @@
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%; /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 0;
+}
+
+svg .rect {
+    fill: #d1e2ff;
+    stroke: steelblue;
+    stroke-width: 5px;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    width: 400px;
+    height: 150px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.links line {
+    stroke: #999;
+    stroke-opacity: 0.6;
+}
+
+.node circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+}
+
+.node text {
+    fill: #666;
+    font-family: Helvetica;
+}
+
+.cd-panel {
+    visibility: hidden;
+    transition: visibility 0s 0.6s;
+}
+
+.cd-panel.cd-panel--is-visible {
+    visibility: visible;
+    transition: visibility 0s 0s;
+}
+
+.cd-panel__header {
+    position: fixed;
+    top: 0;
+    width: 90%;
+    height: 50px;
+    transition: transform 0.3s 0s;
+    transform: translateY(-50px);
+}
+
+.cd-panel--from-right .cd-panel__header {
+    right: 0;
+}
+
+.cd-panel--from-left .cd-panel__header {
+    left: 0;
+}
+
+.cd-panel--is-visible .cd-panel__header {
+    transition: transform 0.3s 0.3s;
+    transform: translateY(0px);
+}
+
+.cd-panel__container {
+    font-family: Helvetica;
+    position: fixed;
+    border-top: 200px;
+    width: 300px;
+    height: 100%;
+    top: 0;
+    transition: transform 0.3s 0.3s;
+}
+
+.cd-panel--from-right .cd-panel__container {
+    right: 0;
+    transform: translate3d(-100%, 0, 0);
+}
+
+.cd-panel--is-visible .cd-panel__container {
+    transform: translate3d(0, 0, 0);
+    transition-delay: 0s;
+}
+
+.cd-panel__content--abstract {
+    height: 300px;
+    width: 100%;
+    border: 1px solid #ccc;
+    font-size: 15.4px;
+    line-height: 1.4;
+    font-weight: 400;
+    color: #2e414f;
+    font-family: Roboto, Helvetica Neue, Arial, sans-serif;
+    overflow: auto;
+}
+
+.paper-detail-title {
+    font-family: Roboto Slab,Georgia,serif;
+    font-weight: 700;
+}
+
+.subhead {
+    font-size: 14px;
+    margin: 0 0 10px;
+    font-weight: 400;
+    white-space: pre-wrap;
+}
+
+ul, li {
+    list-style: none;
+    padding: 0;
+}
+
+html {
+    background: #fff;
+    color: #2e414f;
+    font-family: Roboto,Helvetica Neue,Arial,sans-serif;
+    line-height: 1.4;
+}
+
+.author-list {
+    color: #8c9296;
+}
+
+.subhead .author-list__link:visited {
+    color: #654cb3;
+}
+
+.subhead .author-list__link {
+    color: #237aaa;
+    text-decoration: none;
+}
+
+.author-list__link:hover {
+    text-decoration: underline;
+}
+
+.author-list__link:visited:hover {
+    color: #8c9296;
+}

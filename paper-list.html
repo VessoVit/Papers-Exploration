@@ -134,7 +134,20 @@
         .style("width", 200)
         .style("height", 80);
     function displayGraph(paperId){
-        d3.select("svg").selectAll("*").remove();
+        let i = 0;
+        if (paperList.nodes.length > 0){
+            while (paperList.nodes[i]["paperId"] != paperId) {
+                i++;
+            }
+            if (paperList.nodes[i]["citations"] == null){
+                console.log("The chosen paper has no citations at all");
+                return;
+            }
+            else {
+                d3.select("svg").selectAll("*").remove();
+            }
+        }
+
         paperList = {"nodes": [], "links": []};
 
         fetch("http://api.semanticscholar.org/v1/paper/" + paperId)
@@ -171,7 +184,7 @@
                     paperList.nodes[0] = data;
                     var i = 0;
                     var sourceID, targetID;
-                    for (i = 0; (i < 10) || (i < ); i++) {
+                    for (i = 0; (i < 10) && (i < data["citations"].length); i++) {
                         newNode = new ABNode(data["citations"][i].title, data["citations"][i].paperId);
                         paperList.nodes.push({
                             "title": data["citations"][i]["title"],
