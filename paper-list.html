@@ -135,25 +135,30 @@
         .style("height", 80);
     function displayGraph(paperId){
         let i = 0;
-        if (paperList.nodes.length > 0){
-            while (paperList.nodes[i]["paperId"] != paperId) {
-                i++;
-            }
-            if (paperList.nodes[i]["citations"] == null){
-                console.log("The chosen paper has no citations at all");
-                return;
-            }
-            else {
-                d3.select("svg").selectAll("*").remove();
-            }
-        }
+        // if (paperList.nodes.length > 0){
+        //     console.log(paperList.nodes[i].paperId);
+        //     console.log(paperId);
+        //     while (paperList.nodes[i].paperId != paperId) {
+        //         i++;
+        //     }
+        //     if (paperList.nodes[i]["citations"] == null){
+        //         console.log("The chosen paper has no citations at all");
+        //         return;
+        //     }
+        //     else {
+        //         d3.select("svg").selectAll("*").remove();
+        //     }
+        // }
+
+        d3.select("svg").selectAll("*").remove();
 
         paperList = {"nodes": [], "links": []};
+
 
         fetch("http://api.semanticscholar.org/v1/paper/" + paperId)
             .then(function(data) {
                 data.text().then(function (text) {
-
+                    console.log(text);
                     let data = JSON.parse(text);
                     // console.log(JSON.parse(text));
                     //     });
@@ -182,19 +187,23 @@
                     // });
 
                     paperList.nodes[0] = data;
+                    console.log(data);
                     var i = 0;
                     var sourceID, targetID;
-                    for (i = 0; (i < 10) && (i < data["citations"].length); i++) {
-                        newNode = new ABNode(data["citations"][i].title, data["citations"][i].paperId);
+                    for (i = 0; (i < 20) && (i < data["citations"].length); i++) {
+                        if (true) {
+                            newNode = new ABNode(data["citations"][i].title, data["citations"][i].paperId);
                         paperList.nodes.push({
                             "title": data["citations"][i]["title"],
                             "paperId": data["citations"][i]["paperId"],
-                            "abstract": data["citations"][i]["abstract"]
+                            "abstract": data["citations"][i]["abstract"],
+                            "citations": data["citations"][i]["citations"]
                         });
                         console.log(paperList.nodes[0].paperId);
                         sourceID = paperList.nodes[0].paperId;
                         targetID = newNode.paperId;
                         paperList.links.push({"source": sourceID, "target": targetID});
+                        }
                     }
 
                     console.log(paperList);
@@ -397,7 +406,7 @@
         // end of fetch extension
     }
 
-    displayGraph("abd1c342495432171beb7ca8fd9551ef13cbd0ff");
+    displayGraph("e4845fb1e624965d4f036d7fd32e8dcdd2408148");
 
 </script>
 </body>
