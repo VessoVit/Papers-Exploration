@@ -12,7 +12,9 @@ class Controller {
         this.view = view;
     }
 
-
+    changeSaveOption(saveOption) {
+        console.log("save option: " + saveOption);
+    }
 
     getModel() {
         return this.model;
@@ -28,7 +30,7 @@ class Controller {
 
     visualize(id){
         console.log("I am visualizing this paper");
-        this.view.renderSVG(id, this.model.getData());
+        this.view.renderSVG(id, this.model.getData(), this.view);
     }
 
     playPaper(id) {
@@ -82,8 +84,7 @@ class View {
         this.controller.playPaper(id);
     }
 
-    renderSVG(id, data) {
-        // console.log(data[id].outCitations);
+    renderSVG(id, data, view) {
         d3.select("svg").selectAll("*").remove();
 
         this.paperList = {"nodes": [], "links": []};
@@ -96,27 +97,20 @@ class View {
             {
                 label: "Show Details about Paper",
                 onClick: function (d) {
+                    var authorList = "<span class='author-list'>";
+                    for (var i = 0; i < d.authors.length; i++) {
+                        authorList = authorList + "<span data-heap-id data-heap-author-id>" +
+                                                    "<span class=author-list__author-name>";
+                        authorList = authorList + "<span>" + d.authors[i].name + "<br></span></span></span>";
+                    }
+                    authorList = authorList + "</span>";
                     console.log("The user wants to know about " + d.title);
                     d3.selectAll(".cd-panel")
                         .classed("cd-panel--is-visible", true);
                     d3.selectAll(".cd-panel__content--text")
                         .html("<h1 class = paper-detail-title>" + d.title + "</h1>"
                             + "<ul class=subhead data-selenium-selector=paper-meta-subhead>" +
-                            "<li>" +
-                            "<span class=author-list>" +
-                            "<span data-heap-id data-heap-author-id>" +
-                            "<span class=author-list__author-name>" +
-                            "<span>Yann LeCun</span></span></span>" +
-                            "<span data-heap-id data-heap-author-id>, " +
-                            "<span class=author-list__author-name>" +
-                            "<span>Yoshua Bengio</span></span></span>" +
-                            "<span data-heap-id data-heap-author-id=1695689>, " +
-                            "<a class='author-list__link author-list__author-name' href=/author/Geoffrey-E.-Hinton/1695689>" +
-                            "<span class=''>" +
-                            "<span>Geoffrey E. Hinton</span></span></a></span></span></li>" +
-                            "<li>Published in <span data-selenium-selector='venue-metadata'>" +
-                            "<span class=''>" +
-                            "<span>Nature</span></span></span> " +
+                            "<li>" + authorList +
                             "<span data-selenium-selector='paper-year'>" +
                             "<span class=''>" +
                             "<span>2015</span></span></span></li>" +
@@ -135,47 +129,6 @@ class View {
                         view.explorePaper(d.paperId);
                     }
                 }
-            },
-            {
-                label: "background",
-                items: [
-                    {
-                        label: "red",
-                        onClick: function () {
-                            svg.node().style.background = "#ff0000";
-                        }
-                    },
-                    {
-                        label: "blue",
-                        action: function () {
-                            svg.node().style.background = "#0000ff";
-                        }
-                    },
-                    {
-                        label: "pink",
-                        action: function () {
-                            alert('pink is clicked!');
-                        },
-                        items: function () {
-                            return [
-                                {
-                                    label: "deep pink",
-                                    action: function () {
-                                        svg.node().style.background = "#ff1493";
-                                    }
-                                },
-                                {
-                                    label() {
-                                        return "shocking pink";
-                                    },
-                                    action() {
-                                        svg.node().style.background = "#fc0fc0";
-                                    }
-                                }
-                            ];
-                        }
-                    }
-                ]
             }
         ];
 
@@ -186,13 +139,10 @@ class View {
             for (i = 0; (i < 20) && (i < data[id].citations.length); i++) {
                 console.log("i = " + i);
                 console.log(data[id].citations[i]);
-                // newNode = new ABNode(data[id].citations[i].title, data[id].citations[i].paperId);
-                // console.log(newNode);
                 this.paperList.nodes.push({
                     "title": data[id].citations[i]["title"],
                     "paperId": data[id].citations[i]["paperId"],
                     "abstract": data[id].citations[i]["abstract"],
-                    "citations": data[id].citations[i]["citations"]
                 });
                 sourceID = this.paperList.nodes[0].paperId;
                 targetID = data[id].citations[i].paperId;
@@ -232,35 +182,46 @@ class View {
                     return d.paperId;
                 }).distance(200))
             .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("center", d3.forceCenter(width / 3, height / 2))
+
+        function addToTree(branch){
+            var ppList = view.paperList;
+            for (var i = 0; i < ppList.nodes.length; i++) {
+                if (ppList.nodes[i].paperId == branch.paperId){
+                    ppList.nodes[i].abstract = branch.abstract;
+                    console.log("found it");
+                    break;
+                }
+            }
+            for (i = 0; (i < 20) && (i < branch.citations.length); i++) {
+                view.paperList.nodes.push({
+                    "title": branch.citations[i]["title"],
+                    "paperId": branch.citations[i]["paperId"],
+                    "abstract": branch.citations[i]["abstract"],
+                });
+                sourceID = branch.paperId;
+                targetID = branch.citations[i].paperId;
+                view.paperList.links.push({"source": sourceID, "target": targetID});
+            }
+            restart();
+        }
 
         node.append("circle")
             .attr("r", 20)
-            // .attr("fill", "#bb2280")
             .on("click", function (d) {
-                if (d3.event.shiftKey) {
-                    d3.select("cd-panel")
-                        .attr("class", "cd-panel--is-visible");
-                } else {
-                    let paper;
-                    for (paper of this.paperList.nodes) {
-                        console.log(paper.isExpanded);
-                        if ((paper["paperId"] === d.paperId) && (paper["isExpanded"] == false)) {
-                            console.log(paper["isExpanded"]);
-                            console.log(d.title);
-                            let subpaper;
-                            for (subpaper of paper["citations"]) {
-                                console.log(subpaper.title);
-                                this.paperList.nodes.push({
-                                    "title": subpaper.title, "paperId": subpaper.paperId
-                                });
-                                this.paperList.links.push({"source": paper.paperId, "target": subpaper.paperId});
-                            }
-                            paper.isExpanded = true;
-                            restart();
-                        }
-                    }
-                }
+                console.log("The user has clicked on a circle " + d.paperId);
+                //// working on this
+
+
+
+                fetch("http://api.semanticscholar.org/v1/paper/" + d.paperId)
+                    .then(function(data) {
+                        console.log("got the data");
+                        data.text().then(function (text) {
+                            var json = JSON.parse(text);
+                            addToTree(json);
+                        });
+                    });
             })
             .on("mouseover", handleMouseOver)
             .on("mouseleave", handleMouseOut)
@@ -335,7 +296,7 @@ class View {
 
             // Apply the general update pattern to the nodes.
             // node = node.data(paperList.nodes, function(d) { return d.paperId;});
-            node = node.data(this.paperList.nodes);
+            node = node.data(view.paperList.nodes);
             node.exit().remove();
             var enter = node.enter().append("g")
                 .attr("class", "node")
@@ -376,15 +337,15 @@ class View {
 
             node = node.merge(enter);
 
-            link = link.data(this.paperList.links, function (d) {
+            link = link.data(view.paperList.links, function (d) {
                 return d.source.paperId + "-" + d.target.paperId;
             });
             link.exit().remove();
             link = link.enter().append("line").merge(link);
 
             // Update and restart the simulation.
-            simulation.nodes(this.paperList.nodes);
-            simulation.force("link").links(this.paperList.links);
+            simulation.nodes(view.paperList.nodes);
+            simulation.force("link").links(view.paperList.links);
             simulation.alpha(1).restart();
         }
 
@@ -410,10 +371,16 @@ class View {
     setupUI() {
         var ui = d3.select("#UI");
         var form = ui.append("form");
-        form.html("<h3>Do you want to save the list to offline JSON file?</h3>" +
+        form.html("Do you want to save the list to offline JSON file?" +
             "<label class='switch'>" +
-            "<input type='checkbox'>" +
+            "<input id='save-option' type='checkbox' onclick='view.changeOption()'>" +
             "<span class='slider'></span></label>");
+    }
+
+    changeOption() {
+        console.log("The user has changed his mind");
+        var saveOption = document.getElementById("save-option").checked;
+        this.controller.changeSaveOption(saveOption);
     }
 }
 
