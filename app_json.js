@@ -30,6 +30,32 @@ class Controller {
         console.log("I am visualizing this paper");
         this.view.renderSVG(id, this.model.getData());
     }
+
+    playPaper(id) {
+        var i;
+        var paperExists = false;
+        for (i = 0; i < this.model.getData().length; i++) {
+            if (this.model.getData()[i].paperId == id) {
+                paperExists = true;
+                break;
+            }
+        }
+        if (!paperExists) {
+            console.log("I'm gonna fetch this, add this to my database, and the visualize it for you!");
+            fetch("http://api.semanticscholar.org/v1/paper/" + id)
+                .then(function(data) {
+                    data.text().then(function (text) {
+                        var json = JSON.parse(text);
+                        app.addToDB(json);
+                        app.visualize(i);
+                    });
+                });
+        }
+    }
+
+    addToDB(record) {
+        this.model.appendDB(record);
+    }
 }
 
 // this is the View class
@@ -49,6 +75,10 @@ class View {
     update(){
         console.log('model has changed');
         this.controller.displayListPaper();
+    }
+
+    explorePaper(id) {
+        this.controller.playPaper(id);
     }
 
     renderSVG(id, data) {
@@ -101,7 +131,7 @@ class View {
                 label: "Explore this paper",
                 onClick: function(d) {
                     if (d.paperId != null) {
-                        displayGraph(d.paperId);
+                        view.explorePaper(d.paperId);
                     }
                 }
             },
@@ -367,8 +397,9 @@ class View {
 
     simpleDisplay(data1) {
         console.log(data1);
-        for (var i = 0; i < 4; i++) {
-            var root = d3.select("#root");
+        var root = d3.select("#root");
+        root.html("");
+        for (var i = 0; i < data1.length; i++) {
             var item = root.append("div");
             item.classed("single-page-item", true);
             item.append("a")
@@ -400,6 +431,11 @@ class Model {
 
     getData(){
         return this.data;
+    }
+
+    appendDB(record) {
+        this.data.push(record);
+        this.modelChange();
     }
 }
 
