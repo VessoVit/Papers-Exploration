@@ -65,6 +65,7 @@ class View {
         this.controller = controller;
         this.controller.setView(this);
         this.paperList = {"nodes": [], "links": []};
+        this.setupUI();
     }
 
     dummyFunc(id){
@@ -364,9 +365,6 @@ class View {
                 .on("mouseover", handleMouseOver)
                 .on("mouseleave", handleMouseOut);
 
-            // node.remove("text");
-
-            // node = svg.selectAll(".node");
             enter
                 .append("text")
                 .attr("dx", 6)
@@ -378,9 +376,6 @@ class View {
 
             node = node.merge(enter);
 
-            // node.enter().merge(node);
-
-            // Apply the general update pattern to the links.
             link = link.data(this.paperList.links, function (d) {
                 return d.source.paperId + "-" + d.target.paperId;
             });
@@ -410,6 +405,15 @@ class View {
                 .attr("onclick", "view.dummyFunc(" + i + ")")
                 .html("Visualize");
         }
+    }
+
+    setupUI() {
+        var ui = d3.select("#UI");
+        var form = ui.append("form");
+        form.html("<h3>Do you want to save the list to offline JSON file?</h3>" +
+            "<label class='switch'>" +
+            "<input type='checkbox'>" +
+            "<span class='slider'></span></label>");
     }
 }
 
